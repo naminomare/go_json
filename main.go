@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"./basicserver"
+	"./jsonserver"
 )
 
 const (
@@ -14,13 +15,14 @@ const (
 )
 
 var responsefuncmap = map[string]basicserver.ResponseFunc{
-	"^/static_res": basicserver.SetStaticResponseFunc,
+	"^/static_res/.*": basicserver.SetStaticResponseFunc,
+	"^/json_test":     jsonserver.JsonEchoResponseFunc,
 }
 
-func authFunc(w http.ResponseWriter) {
-	w.Header().Set("WWW-Authenticate", "Basic realm='input your id and password")
-	w.WriteHeader(401)
-	w.Write([]byte("401 Unauthorized\n"))
+func authFunc(w *http.ResponseWriter) {
+	(*w).Header().Set("WWW-Authenticate", "Basic realm='input your id and password")
+	(*w).WriteHeader(401)
+	(*w).Write([]byte("401 Unauthorized\n"))
 }
 
 func checkAuthFunc(r *http.Request) bool {
@@ -28,8 +30,10 @@ func checkAuthFunc(r *http.Request) bool {
 }
 
 func viewHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println(r.URL.Path)
+
 	basicserver.ViewHandler(
-		w,
+		&w,
 		r,
 		checkAuthFunc,
 		authFunc,

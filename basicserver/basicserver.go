@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 )
@@ -38,6 +39,7 @@ func DefaultResponseFunc(wp *http.ResponseWriter, rp *http.Request) {
 }
 
 func SetStaticResponseFunc(wp *http.ResponseWriter, rp *http.Request) {
+	fmt.Println("StaticRes")
 	fname := rp.URL.Path[1:len(rp.URL.Path)]
 	if strings.HasSuffix(rp.URL.Path, ".css") {
 		(*wp).Header().Set("Content-Type", "text/css")
@@ -45,10 +47,16 @@ func SetStaticResponseFunc(wp *http.ResponseWriter, rp *http.Request) {
 		(*wp).Header().Set("Content-Type", "text/javascript")
 	} else if strings.HasSuffix(rp.URL.Path, ".ts") {
 		(*wp).Header().Set("Content-Type", "application/octet-stream")
+	} else if !strings.Contains(rp.URL.Path, ".") {
+		(*wp).Header().Set("Content-Type", "text/html")
+		//		fname += ".html" // .htmは救えない
 	}
 
 	fp, err := os.Open(fname)
 	if err != nil {
+		curDir, _ := filepath.Abs(".")
+		fmt.Println(curDir)
+		fmt.Println("os.OpenError " + fname)
 		panic(err)
 	}
 	defer fp.Close()
@@ -71,10 +79,10 @@ func CheckAuth(r *http.Request, inputusername string, inputpassword string) bool
 }
 
 func ViewHandler(
-	w http.ResponseWriter,
+	w *http.ResponseWriter,
 	r *http.Request,
 	checkAuthFunc func(*http.Request) bool,
-	authFunc func(http.ResponseWriter),
+	authFunc func(*http.ResponseWriter),
 	responseFuncMap map[string]ResponseFunc,
 	defaultFunc ResponseFunc,
 ) {
@@ -98,12 +106,12 @@ func ViewHandler(
 			fmt.Println(r.URL.Path)
 
 			// url to function
-			f(&w, r)
+			f(w, r)
 			match_flag = true
 			break
 		}
 	}
 	if !match_flag {
-		defaultFunc(&w, r)
+		defaultFunc(w, r)
 	}
 }
