@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"gopkg.in/mgo.v2"
-
 	"./basicserver"
+	"./dbmgr"
 	"./jsonserver"
-	"./mongoutil"
 )
 
 const (
@@ -29,61 +27,24 @@ var sResponseFuncMap = map[string]basicserver.ResponseFunc{
 	"^/update":        updateResponseFunc,
 }
 
-//var sDBMgr dbmgr.DBMgr
-
-var sSession *mgo.Session
-
-//var sTestCollection *mgo.Collection
-var sCollectionMap map[string]*mgo.Collection
-
-func getCollection(collectionName string) *mgo.Collection {
-	if sCollectionMap[collectionName] == nil {
-		sCollectionMap[collectionName] = sSession.DB(cMONGODBNAME).C(collectionName)
-	}
-	return sCollectionMap[collectionName]
-}
+var sDBMgr dbmgr.SessionMgr
 
 func insertResponseFunc(wp *http.ResponseWriter, rp *http.Request) {
-	js := jsonserver.CalcJSONMap(rp)
-
-	collectionNameI := js["collection"]
-	insertQuery := js["query"]
-	collectionName := collectionNameI.(string)
-	collection := getCollection(collectionName)
-
-	mongoutil.Insert(collection, insertQuery)
+	dbname, collectionname, query := dbmgr.GetInsertQuery(rp)
+	sDBMgr.Insert(dbname, collectionname, query)
 	(*wp).Write([]byte("success"))
 }
 
 func findResponseFunc(wp *http.ResponseWriter, rp *http.Request) {
-	js := jsonserver.CalcJSONMap(rp)
-
-	collectionNameI := js["collection"]
-	findquery := js["query"]
-	collectionName := collectionNameI.(string)
-	collection := getCollection(collectionName)
-
-	res := mongoutil.Find(collection, findquery)
+	dbname, collectionname, query := dbmgr.GetFindQuery(rp)
+	res := sDBMgr.Find(dbname, collectionname, query)
 	(*wp).Write(res)
 }
 
 func updateResponseFunc(wp *http.ResponseWriter, rp *http.Request) {
-	m := jsonserver.CalcJSONMap(rp)
-	var collectionNameI, findquery, updatequery interface{}
-
-	collectionNameI = m["collection"]
-	findquery = m["findquery"]
-	updatequery = m["updatequery"]
-	collectionName := collectionNameI.(string)
-
-	collection := getCollection(collectionName)
-
-	if findquery != nil {
-		mongoutil.Update(collection, findquery, updatequery)
-		(*wp).Write([]byte("success"))
-	} else {
-		(*wp).Write([]byte("failure"))
-	}
+	dbname, collectionname, findquery, updatequery := dbmgr.GetUpdateQuery(rp)
+	sDBMgr.Update(dbname, collectionname, findquery, updatequery)
+	(*wp).Write([]byte("success"))
 }
 
 func authFunc(w *http.ResponseWriter) {
@@ -111,10 +72,10 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	fmt.Println("Hello World.")
-	sSession = mongoutil.CreateSession(cMONGOIP)
+	// sSession = mongoutil.CreateSession(cMONGOIP)
 	//	sTestCollection = sSession.DB(cMONGODBNAME).C(cMONGOCOLLECTIONNAME)
 
-	//sDBMgr.Initialize(cMONGOIP)
+	sDBMgr.Initialize(cMONGOIP)
 
 	http.HandleFunc("/", viewHandler)
 	http.ListenAndServeTLS(":"+cPORT, "cert.pem", "key.pem", nil)

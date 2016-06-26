@@ -1,11 +1,13 @@
 package dbmgr
 
 import (
+	"fmt"
 	"net/http"
 
 	"../jsonserver"
 	"../mongoutil"
 	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 type dbController struct {
@@ -16,20 +18,24 @@ type dbController struct {
 // require Initialize
 type SessionMgr struct {
 	mpSession      *mgo.Session
-	mpDBController *dbController
+	mpDBController dbController
 }
 
 // Initialize session create
 func (s *SessionMgr) Initialize(mongoip string) error {
 	s.mpSession = mongoutil.CreateSession(mongoip)
+	s.mpDBController.MDBElem = map[string]map[string]*mgo.Collection{}
 	return nil
 }
 
 func (s *SessionMgr) getCollection(dbname, collectionname string) *mgo.Collection {
-	if mpDBController.MDBElem[dbname][collectionname] == nil {
-		mpDBController.MDBElem[dbname][collectionname] = s.mpSession.DB(dbname).C(collectionname)
+	if s.mpDBController.MDBElem[dbname] == nil {
+		s.mpDBController.MDBElem[dbname] = map[string]*mgo.Collection{}
 	}
-	return mpDBController.MDBElem[dbname][collectionname]
+	if s.mpDBController.MDBElem[dbname][collectionname] == nil {
+		s.mpDBController.MDBElem[dbname][collectionname] = s.mpSession.DB(dbname).C(collectionname)
+	}
+	return s.mpDBController.MDBElem[dbname][collectionname]
 }
 
 func mapToString(m map[string]interface{}, key string) string {
@@ -43,6 +49,12 @@ func GetFindQuery(rp *http.Request) (string, string, interface{}) {
 	dbName := mapToString(js, "db")
 	collectionName := mapToString(js, "collection")
 	query := js["query"]
+	if query == nil {
+		query = bson.M{}
+	}
+	fmt.Println(dbName)
+	fmt.Println(collectionName)
+	fmt.Println(query)
 
 	return dbName, collectionName, query
 }

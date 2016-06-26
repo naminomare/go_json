@@ -23,7 +23,7 @@
         function update(){
             $.get(
                 "../update",
-                '{ "findquery" : { "A" : "aa" }, "updatequery" : { "$set" : { "C" : "cc" } } }',
+                '{ "db" : "test", "collection" : "col", "findquery" : { "A" : "aa" }, "updatequery" : { "$set" : { "D" : "dd" } } }',
                 function(data){
                     alert(data)
                 }
@@ -32,7 +32,7 @@
         function find(){
             $.get(
                 "../find",
-                {},
+                '{ "db" : "test", "collection" : "col", "query" : {} }',
                 function(data){
                     alert(data);
                 }
@@ -41,7 +41,7 @@
         function insert(){
             $.get(
                 "../insert",
-                '{ "A" : "aa", "B" : "bb", "time" : "' + Date.now() + '" }',
+                '{ "db" : "test", "collection" : "col", "query" : { "A" : "aa", "B" : "bb", "time" : "' + Date.now() + '" } }',
                 function(data){
                     alert(data);
                 }
