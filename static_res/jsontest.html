@@ -4,17 +4,55 @@
     <script src="jquery-3.0.0.min.js"></script>
     <script>
         $(document).ready(function(){
+            // $.get(
+            //     "../json_test", 
+            //     { A : "b", B : "de" }, 
+            //     function(data){
+            //         alert(data);
+            //     }
+            // );
+            // $.get(
+            //     "../insert",
+            //     { A : "a", B : "b" },
+            //     function(data){
+            //         alert(data);
+            //     }
+            // )    
+//            update();                    
+        });
+        function update(){
             $.get(
-                "../json_test", 
-                { A : "b", B : "de" }, 
+                "../update",
+                '{ "findquery" : { "A" : "aa" }, "updatequery" : { "$set" : { "C" : "cc" } } }',
+                function(data){
+                    alert(data)
+                }
+            )
+        }
+        function find(){
+            $.get(
+                "../find",
+                {},
                 function(data){
                     alert(data);
                 }
-            );
-        });
+            )
+        }
+        function insert(){
+            $.get(
+                "../insert",
+                '{ "A" : "aa", "B" : "bb", "time" : "' + Date.now() + '" }',
+                function(data){
+                    alert(data);
+                }
+            )
+        }
     </script>
 </head>
 <body>
 <div>hogehoge</div>
+<input type="button" onclick="find();" value="find">
+<input type="button" onclick="insert();" value="insert">
+<input type="button" onclick="update();" value="update">
 </body>
 </html>
