@@ -14,9 +14,6 @@ const (
 	cPASSWORD = "password"
 	cPORT     = "20000"
 	cMONGOIP  = "localhost"
-
-	cMONGODBNAME         = "anim"
-	cMONGOCOLLECTIONNAME = "fileinfo"
 )
 
 var sResponseFuncMap = map[string]basicserver.ResponseFunc{
@@ -71,10 +68,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	fmt.Println("Hello World.")
-	// sSession = mongoutil.CreateSession(cMONGOIP)
-	//	sTestCollection = sSession.DB(cMONGODBNAME).C(cMONGOCOLLECTIONNAME)
-
+	fmt.Println("start go server")
 	sDBMgr.Initialize(cMONGOIP)
 
 	http.HandleFunc("/", viewHandler)
